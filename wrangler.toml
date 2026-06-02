@@ -1,15 +1,9 @@
 # Cloudflare Pages 配置
+# Pages 会自动：部署 public/ 的静态文件 + 识别 functions/ 为 API 路由
 name = "positioning-compass"
 compatibility_date = "2025-06-01"
 
-# 环境变量（部署后也可在 Cloudflare Dashboard 中设置）
-[vars]
-# DEEPSEEK_API_KEY 建议在 Dashboard 中设置为 Secret，不要写在这里
-
-# 静态资源目录
-[build]
-command = ""
-static_dir = "public"
-
-# Pages Functions 目录（默认就是 functions/）
-# 无需额外配置
+# Pages 项目不需要 [build] 段——构建配置在 Dashboard 中设置
+# Dashboard 构建设置：
+#   构建命令：（留空）
+#   输出目录：public
