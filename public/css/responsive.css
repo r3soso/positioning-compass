@@ -1,0 +1,246 @@
+/* ===== Responsive / Mobile ===== */
+
+/* ── 基准：小屏手机 (iPhone SE, 320-374px) ── */
+@media (max-width: 374px) {
+  .container { padding: 8px; }
+
+  .header { padding: 16px 8px 12px; }
+  .header h1 { font-size: 18px; }
+  .header p { font-size: 11px; }
+
+  .role-grid { grid-template-columns: 1fr; gap: 6px; }
+  .role-card { padding: 12px 10px; }
+  .role-icon { font-size: 28px; }
+  .role-name { font-size: 13px; }
+
+  .qa-card { padding: 12px; }
+  .qa-question { font-size: 14px; }
+  .qa-input { font-size: 13px; padding: 10px 12px; min-height: 70px; }
+
+  .btn { padding: 10px 14px; font-size: 12px; }
+  .btn-row { gap: 4px; }
+  .mic-btn { padding: 8px 12px; font-size: 12px; }
+
+  .report-card { padding: 14px; }
+  .highlight { font-size: 14px; padding: 10px; }
+  .tagline-candidates { grid-template-columns: 1fr; }
+
+  .progress-dot { width: 8px; height: 8px; }
+  .history-item { padding: 12px; }
+}
+
+/* ── 标准手机 (iPhone 6/7/8/X/11/12/13/14, 375-480px) ── */
+@media (min-width: 375px) and (max-width: 480px) {
+  .container { padding: 10px; }
+
+  .header { padding: 20px 12px 16px; }
+  .header h1 { font-size: 20px; }
+
+  .role-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .role-card { padding: 14px 10px; }
+  .role-icon { font-size: 30px; }
+
+  .qa-card { padding: 16px; }
+  .qa-question { font-size: 15px; }
+  .qa-input { font-size: 14px; min-height: 75px; }
+
+  .btn { padding: 10px 18px; font-size: 13px; }
+  .btn-row { gap: 6px; }
+
+  .report-card { padding: 18px; }
+  .highlight { font-size: 16px; padding: 12px; }
+  .tagline-candidates { grid-template-columns: 1fr; }
+
+  .resume-banner { flex-direction: column; text-align: center; }
+
+  .modal-content { width: 95%; max-height: 90vh; }
+}
+
+/* ── 平板 / 大屏手机 (481-768px) ── */
+@media (min-width: 481px) and (max-width: 768px) {
+  .container { padding: 14px; }
+  .tagline-candidates { grid-template-columns: 1fr 1fr; }
+  .role-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── 全部移动端通用 (≤768px) ── */
+@media (max-width: 768px) {
+  /* 最小触控区域 */
+  .btn, .mic-btn, .role-card, .tagline-card, .history-item {
+    min-height: 44px;
+  }
+
+  .mic-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 语音工具栏竖排 */
+  .voice-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .voice-bar .btn-ghost {
+    align-self: flex-end;
+  }
+
+  /* 按钮组允许换行 */
+  .btn-row {
+    flex-wrap: wrap;
+  }
+
+  .btn-row .btn {
+    flex: 0 1 auto;
+  }
+
+  /* 报告导出按钮竖排 */
+  .export-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .export-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 角色卡片 */
+  .role-card {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  /* Toast适配 */
+  .toast {
+    max-width: 90vw;
+    text-align: center;
+    font-size: 13px;
+    padding: 10px 20px;
+  }
+
+  /* 模态全屏 */
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: var(--radius) var(--radius) 0 0;
+    max-height: 90vh;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+  }
+
+  /* 进度条 */
+  .progress-dot {
+    width: 9px;
+    height: 9px;
+  }
+
+  .progress-text {
+    font-size: 10px;
+  }
+
+  /* 输入框移动端友好 */
+  .qa-input {
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+
+  /* 历史记录 */
+  .history-item {
+    padding: 14px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .history-actions {
+    flex-wrap: wrap;
+  }
+
+  /* Badge行 */
+  .badge-row { gap: 4px; }
+  .badge { font-size: 10px; padding: 3px 8px; }
+}
+
+/* ── iPhone 刘海屏 / 挖孔屏安全区 ── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .container {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .header {
+    padding-top: max(28px, env(safe-area-inset-top));
+  }
+
+  .modal-overlay {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ── 移动端键盘弹起时缩小header ── */
+@media (max-height: 500px) {
+  .header {
+    padding: 8px 16px;
+  }
+
+  .header h1 {
+    font-size: 16px;
+  }
+
+  .header p,
+  .badge-row {
+    display: none;
+  }
+
+  .qa-card {
+    padding: 10px 12px;
+  }
+
+  .qa-question {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .qa-hint {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .qa-input {
+    min-height: 50px;
+    font-size: 14px;
+  }
+}
+
+/* ── 暗色模式适配（可选） ── */
+@media (prefers-color-scheme: dark) {
+  /* 保持浅色主题，因为品牌色基于暖色系 */
+  /* 仅微调卡片背景，减少刺眼 */
+  body {
+    background: #e8e5e0;
+  }
+}
+
+/* Print styles for report export */
+@media print {
+  body { background: #fff; }
+  .container { max-width: 100%; padding: 0; }
+  .btn, .btn-row, .voice-bar, .mic-btn,
+  .export-row, .progress-bar, .header .badge-row,
+  .role-section, .resume-banner, .offline-badge {
+    display: none !important;
+  }
+  .report-card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

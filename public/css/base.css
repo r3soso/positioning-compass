@@ -1,0 +1,53 @@
+/* ===== CSS Variables & Reset ===== */
+:root {
+  --bg: #f5f3f0;
+  --card: #ffffff;
+  --text: #2c2416;
+  --text2: #6b5e4a;
+  --gold: #b8860b;
+  --gold2: #d4a843;
+  --blue: #1a5276;
+  --blue2: #2980b9;
+  --red: #c0392b;
+  --red2: #e74c3c;
+  --green: #1e8449;
+  --green2: #27ae60;
+  --border: #e0d8cc;
+  --shadow: 0 2px 16px rgba(0,0,0,0.06);
+  --radius: 10px;
+  --font: 'PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ===== Typography ===== */
+h1 { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+h2 { font-size: 15px; font-weight: 700; }
+h3 { font-size: 18px; font-weight: 800; }
+h4 { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+
+a { color: var(--blue2); text-decoration: none; }
+a:hover { text-decoration: underline; }

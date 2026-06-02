@@ -1,0 +1,142 @@
+/* ===== Report-specific Styles ===== */
+
+.report-header {
+  text-align: center;
+  padding: 20px 0 10px;
+}
+
+.report-header .report-icon {
+  font-size: 40px;
+}
+
+.report-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 8px 0;
+}
+
+.report-header p {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* Positioning strength badge */
+.strength-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+.strength-badge.strong {
+  background: #d4edda;
+  color: #155724;
+}
+
+.strength-badge.medium {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.strength-badge.weak {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Keywords cloud */
+.keyword-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.keyword-tag {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #fef9f0, #fffbf5);
+  border: 1px solid rgba(184,134,11,0.2);
+  border-radius: 20px;
+  font-size: 13px;
+  color: #5c3d0a;
+}
+
+/* AI summary section */
+.ai-summary {
+  font-size: 14px;
+  line-height: 1.9;
+  padding: 14px;
+  background: #fafaf8;
+  border-radius: 8px;
+  color: var(--text);
+}
+
+/* Next steps card */
+.next-steps-card {
+  background: linear-gradient(135deg, #f0f7f0, #f5faf5);
+  border: 1px solid rgba(30,132,73,0.2);
+}
+
+.next-steps-card h3 {
+  color: var(--green);
+}
+
+.next-steps-list {
+  font-size: 14px;
+  line-height: 2;
+  margin-top: 8px;
+  list-style: none;
+  padding: 0;
+}
+
+.next-steps-list li {
+  padding: 4px 0;
+}
+
+/* Export button row */
+.export-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 16px 0;
+  flex-wrap: wrap;
+}
+
+/* Report footer */
+.report-footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+/* AI loading indicator */
+.ai-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  flex-direction: column;
+}
+
+.ai-loading .ai-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.ai-loading p {
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.ai-loading .ai-tip {
+  font-size: 12px;
+  color: var(--text2);
+  opacity: 0.7;
+}

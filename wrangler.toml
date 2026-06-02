@@ -1,0 +1,15 @@
+# Cloudflare Pages 配置
+name = "positioning-compass"
+compatibility_date = "2025-06-01"
+
+# 环境变量（部署后也可在 Cloudflare Dashboard 中设置）
+[vars]
+# DEEPSEEK_API_KEY 建议在 Dashboard 中设置为 Secret，不要写在这里
+
+# 静态资源目录
+[build]
+command = ""
+static_dir = "public"
+
+# Pages Functions 目录（默认就是 functions/）
+# 无需额外配置

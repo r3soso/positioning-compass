@@ -1,0 +1,20 @@
+{
+  "name": "positioning-compass",
+  "version": "2.0.0",
+  "description": "定位罗盘 — 基于特劳特定位理论的品牌定位AI问答工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "keywords": ["positioning", "branding", "trout", "marketing"],
+  "license": "MIT"
+}
