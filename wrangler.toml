@@ -7,3 +7,9 @@ compatibility_date = "2025-06-01"
 # Dashboard 构建设置：
 #   构建命令：（留空）
 #   输出目录：public
+
+[assets]
+directory = "./public"
+
+# Pages Functions 目录（Cloudflare 自动识别）
+# 无需额外配置，functions/ 目录中的文件会自动转为 API 路由
