@@ -50,7 +50,7 @@ npm start                      # 启动服务 → http://localhost:8899
 
 | 变量名 | 值 |
 |--------|-----|
-| `DEEPSEEK_API_KEY` | `sk-e76570acc1464e71ba0dbd33710bb4c9` |
+| `DEEPSEEK_API_KEY` | `sk-your-deepseek-api-key` |
 
 4. 点击 **保存**，系统会自动重新部署
 
