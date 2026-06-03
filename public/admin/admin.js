@@ -1,0 +1,203 @@
+var PWD='',CP=1,LIM=20;
+
+// Auth
+function login(){
+  var p=document.getElementById('passwordInput').value.trim();
+  if(!p)return;
+  PWD=p;
+  sessionStorage.setItem('admpwd',p);
+  document.getElementById('loginError').style.display='none';
+  loadDash();
+}
+function logout(){
+  PWD='';
+  sessionStorage.removeItem('admpwd');
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('loginPage').style.display='';
+  document.getElementById('passwordInput').value='';
+  document.getElementById('passwordInput').focus();
+}
+
+// Auto login
+(function(){
+  var s=sessionStorage.getItem('admpwd');
+  if(s){PWD=s;loadDash();}
+})();
+
+// Dashboard
+async function loadDash(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('dashboard').style.display='';
+  var r=await fetch('/api/list-reports?password='+encodeURIComponent(PWD)+'&page=1&limit='+LIM);
+  if(r.status===401){logout();document.getElementById('loginError').style.display='block';return}
+  var d=await r.json();
+  if(d.error){alert(d.message);return}
+  renderStats(d);
+  renderList(d);
+  renderPgn(d);
+  document.getElementById('reportCount').textContent='共 '+d.total+' 条报告';
+}
+
+// Stats
+function renderStats(d){
+  var s=document.getElementById('stats');
+  var ai=d.reports.filter(function(r){return r.source==='ai'}).length;
+  var roles={};
+  d.reports.forEach(function(r){roles[r.role_label]=(roles[r.role_label]||0)+1});
+  var topR=Object.entries(roles).sort(function(a,b){return b[1]-a[1]})[0];
+  var h='';
+  h+='<div class="stat-card"><div class="stat-num">'+d.total+'</div><div class="stat-label">📊 总报告数</div></div>';
+  h+='<div class="stat-card"><div class="stat-num">'+ai+'</div><div class="stat-label">🤖 AI 分析</div></div>';
+  h+='<div class="stat-card"><div class="stat-num">'+(d.total-ai)+'</div><div class="stat-label">📝 离线分析</div></div>';
+  h+='<div class="stat-card"><div class="stat-num">'+(topR?topR[1]:0)+'</div><div class="stat-label">👤 最多角色: '+(topR?topR[0]:'-')+'</div></div>';
+  if(Object.keys(roles).length>=2){
+    h+='<div class="stat-card"><div class="stat-num">'+Object.keys(roles).length+'</div><div class="stat-label">🎭 角色种类</div></div>';
+  }
+  s.innerHTML=h;
+}
+
+// List
+function renderList(d){
+  var l=document.getElementById('reportList');
+  if(!d.reports.length){l.innerHTML='<div class="empty">📭 暂无报告数据</div>';document.getElementById('toolbarInfo').textContent='';return}
+  var sm={'强':'tag-strong','中等':'tag-medium','弱':'tag-weak'};
+  var h='';
+  d.reports.forEach(function(r){
+    h+='<div class="report-item" onclick="viewDet(\''+r.id+'\')">';
+    h+='<div class="report-main">';
+    h+='<div class="ri-date">'+fmtDate(r.created_at)+'</div>';
+    h+='<div class="ri-role">'+esc(r.role_label||r.role)+' 视角 · '+(r.answer_count||0)+'个回答</div>';
+    h+='<div class="ri-slot">'+esc(r.slot_sentence||r.category_fit||'未生成定位语句')+'</div>';
+    h+='</div>';
+    h+='<div class="report-tags">';
+    h+='<span class="tag '+(r.source==='ai'?'tag-ai':'tag-local')+'">'+(r.source==='ai'?'🤖 AI':'📝 离线')+'</span>';
+    if(r.positioning_strength)h+='<span class="tag '+(sm[r.positioning_strength]||'')+'">'+r.positioning_strength+'</span>';
+    h+='<button class="del-btn" onclick="event.stopPropagation();delRpt(\''+r.id+'\')">🗑️</button>';
+    h+='</div></div>';
+  });
+  l.innerHTML=h;
+  document.getElementById('toolbarInfo').textContent='第 '+d.page+'/'+d.totalPages+' 页 · 显示 '+d.reports.length+' 条';
+}
+
+// Pagination
+function renderPgn(d){
+  var p=document.getElementById('pagination');
+  if(d.totalPages<=1){p.innerHTML='';return}
+  var h='';
+  h+='<button '+(d.page<=1?'disabled':'')+' onclick="goPage('+(d.page-1)+')">← 上一页</button>';
+  h+='<span>'+d.page+' / '+d.totalPages+'</span>';
+  h+='<button '+(d.page>=d.totalPages?'disabled':'')+' onclick="goPage('+(d.page+1)+')">下一页 →</button>';
+  p.innerHTML=h;
+  CP=d.page;
+}
+
+async function goPage(n){
+  CP=n;
+  var r=await fetch('/api/list-reports?password='+encodeURIComponent(PWD)+'&page='+n+'&limit='+LIM);
+  var d=await r.json();
+  if(d.error){alert(d.message);return}
+  renderList(d);
+  renderPgn(d);
+  document.getElementById('reportCount').textContent='共 '+d.total+' 条报告';
+}
+
+async function refreshList(){await loadDash();}
+
+// Detail Modal
+async function viewDet(id){
+  var o=document.getElementById('modalOverlay');
+  var c=document.getElementById('modalContent');
+  c.innerHTML='<div class="loading">⏳ 加载中...</div>';
+  o.classList.add('show');
+  var r=await fetch('/api/report-detail?id='+id+'&password='+encodeURIComponent(PWD));
+  var d=await r.json();
+  if(d.error){c.innerHTML='<p>❌ '+d.message+'</p>';return}
+  var rp=d.report;
+  var sm={'强':'tag-strong','中等':'tag-medium','弱':'tag-weak'};
+  var h='';
+  h+='<button class="modal-close" onclick="closeModal()">✕</button>';
+  h+='<p style="font-size:11px;color:var(--text2)">'+fmtDate(rp.created_at)+' · '+esc(rp.role_label)+' 视角 · '+(rp.answer_count||0)+'个回答</p>';
+  h+='<h3>📍 品牌定位语句</h3><div class="highlight">'+esc(rp.slot_sentence||'未填写')+'</div>';
+  if(rp.positioning_strength)h+='<span class="tag '+(sm[rp.positioning_strength]||'')+'" style="margin-bottom:12px;display:inline-block">定位强度：'+rp.positioning_strength+'</span>';
+  if(rp.miss_element)h+='<h3>🔑 不可替代性</h3><p>'+esc(rp.miss_element)+'</p>';
+  if(rp.category_fit)h+='<h3>📂 品类定位</h3><p>'+esc(rp.category_fit)+'</p>';
+  if(rp.usps&&rp.usps.length){
+    h+='<h3>⚡ 核心卖点</h3><ul>';
+    rp.usps.forEach(function(u){h+='<li><strong>'+esc(u.type)+'：</strong>'+esc(u.content)+'</li>'});
+    h+='</ul>';
+  }
+  if(rp.keywords&&rp.keywords.length){
+    h+='<h3>🏷️ 关键词</h3><div class="tags">';
+    rp.keywords.forEach(function(k){h+='<span class="tag-item">'+esc(k)+'</span>'});
+    h+='</div>';
+  }
+  if(rp.competitors&&rp.competitors.length){
+    h+='<h3>⚔️ 竞品</h3><div class="tags">';
+    rp.competitors.forEach(function(c){h+='<span class="tag-item">'+esc(c)+'</span>'});
+    h+='</div>';
+  }
+  if(rp.taglines&&rp.taglines.length){
+    h+='<h3>📣 宣传语候选</h3><ul>';
+    rp.taglines.forEach(function(t){h+='<li>'+esc(t)+'</li>'});
+    h+='</ul>';
+  }
+  if(rp.differentiators&&rp.differentiators.length){
+    h+='<h3>🎯 差异化点</h3><ul>';
+    rp.differentiators.forEach(function(d){h+='<li>'+esc(d)+'</li>'});
+    h+='</ul>';
+  }
+  if(rp.painPoints&&rp.painPoints.length){
+    h+='<h3>💢 客户痛点</h3><ul>';
+    rp.painPoints.forEach(function(p){h+='<li>'+esc(p)+'</li>'});
+    h+='</ul>';
+  }
+  if(rp.triggers&&rp.triggers.length){
+    h+='<h3>🔔 购买触发点</h3><ul>';
+    rp.triggers.forEach(function(t){h+='<li>'+esc(t)+'</li>'});
+    h+='</ul>';
+  }
+  if(rp.analysis_summary)h+='<h3>🧠 综合分析</h3><p>'+esc(rp.analysis_summary)+'</p>';
+  if(rp.nextSteps&&rp.nextSteps.length){
+    h+='<h3>🚀 行动建议</h3><ol>';
+    rp.nextSteps.forEach(function(s){h+='<li>'+esc(s)+'</li>'});
+    h+='</ol>';
+  }
+  h+='<h3>📝 原始回答</h3>';
+  if(rp.answers&&Object.keys(rp.answers).length){
+    Object.entries(rp.answers).filter(function(e){return e[1]}).forEach(function(e){h+='<p><strong>'+esc(e[0])+'：</strong>'+esc(e[1])+'</p>'});
+  }else{h+='<p style="color:var(--text2)">无</p>'}
+  if(rp.followups&&Object.keys(rp.followups).length){
+    h+='<p style="margin-top:8px;font-size:12px;color:var(--text2)">追问：</p>';
+    Object.entries(rp.followups).filter(function(e){return e[1]}).forEach(function(e){h+='<p><strong>'+esc(e[0])+'：</strong>'+esc(e[1])+'</p>'});
+  }
+  if(rp.crossAnswers&&Object.keys(rp.crossAnswers).length){
+    h+='<p style="margin-top:8px;font-size:12px;color:var(--text2)">交叉审视：</p>';
+    Object.entries(rp.crossAnswers).filter(function(e){return e[1]}).forEach(function(e){h+='<p><strong>'+esc(e[0])+'：</strong>'+esc(e[1])+'</p>'});
+  }
+  h+='<div style="margin-top:24px;text-align:right;border-top:1px solid var(--border);padding-top:16px"><button class="del-btn" onclick="delRpt(\''+rp.id+'\');closeModal()">🗑️ 删除此报告</button></div>';
+  c.innerHTML=h;
+}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('show')}
+
+// Delete
+async function delRpt(id){
+  if(!confirm('确定删除？'))return;
+  var r=await fetch('/api/delete-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,password:PWD})});
+  var d=await r.json();
+  if(d.ok){refreshList()}else{alert(d.message||'删除失败')}
+}
+
+// Utils
+function esc(s){
+  if(!s)return'';
+  var d=document.createElement('div');
+  d.textContent=s;
+  return d.innerHTML;
+}
+function fmtDate(ts){
+  if(!ts)return'';
+  var d=new Date(ts);
+  var p=function(n){return String(n).padStart(2,'0')};
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
