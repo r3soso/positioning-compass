@@ -1,15 +1,7 @@
 # Cloudflare Pages 配置
-# Pages 会自动：部署 public/ 的静态文件 + 识别 functions/ 为 API 路由
 name = "positioning-compass"
 compatibility_date = "2025-06-01"
-
-# Pages 项目不需要 [build] 段——构建配置在 Dashboard 中设置
-# Dashboard 构建设置：
-#   构建命令：（留空）
-#   输出目录：public
-
-[assets]
-directory = "./public"
+pages_build_output_dir = "public"
 
 # Pages Functions 目录（Cloudflare 自动识别）
 # 无需额外配置，functions/ 目录中的文件会自动转为 API 路由
