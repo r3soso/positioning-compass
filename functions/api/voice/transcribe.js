@@ -42,6 +42,7 @@ export async function onRequest(context) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${whisperKey}` },
       body: whisperForm,
+      signal: AbortSignal.timeout(25000),
     });
 
     if (!whisperResp.ok) {

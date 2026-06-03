@@ -116,6 +116,7 @@ async function callDeepSeek(env, systemPrompt, userMessage, temperature = 0.7) {
       temperature,
       max_tokens: 2048,
     }),
+    signal: AbortSignal.timeout(25000),
   });
 
   if (!resp.ok) {

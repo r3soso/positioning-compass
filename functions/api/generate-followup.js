@@ -44,6 +44,7 @@ export async function onRequest(context) {
         temperature: 0.8,
         max_tokens: 300,
       }),
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!resp.ok) throw new Error(`DeepSeek API 错误 ${resp.status}`);
