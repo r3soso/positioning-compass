@@ -32,7 +32,10 @@ async function generateReport() {
   report.innerHTML = buildReportHTML(analysis);
 
   // 保存到历史
-  saveReportToHistory(analysis);
+  const reportId = saveReportToHistory(analysis);
+
+  // 静默上报到服务器（中心化汇总）
+  saveReportToServer(analysis, reportId);
 }
 
 // ── AI 分析 ──
@@ -219,4 +222,44 @@ function renderLoadingSkeleton() {
       <div class="skeleton skeleton-text short"></div>
     </div>
   `;
+}
+
+// ── 服务器上报（静默，失败不影响用户体验）──
+
+async function saveReportToServer(analysis, reportId) {
+  try {
+    const payload = {
+      id: reportId,
+      role: state.role,
+      roleLabel: getRoleLabel(state.role),
+      source: analysis.source || 'ai',
+      slotSentence: analysis.slotSentence || '',
+      missElement: analysis.missElement || '',
+      keywords: analysis.keywords || [],
+      competitors: analysis.competitors || [],
+      usps: analysis.usps || [],
+      taglines: analysis.taglines || [],
+      positioningStrength: analysis.positioningStrength || '',
+      categoryFit: analysis.categoryFit || '',
+      analysisSummary: analysis.analysisSummary || '',
+      differentiators: analysis.differentiators || [],
+      painPoints: analysis.painPoints || [],
+      triggers: analysis.triggers || [],
+      nextSteps: analysis.nextSteps || [],
+      answerCount: analysis.answerCount || 0,
+      answers: state.answers || {},
+      followups: state.followups || {},
+      crossAnswers: state.crossAnswers || {},
+    };
+
+    await fetch(CONFIG.API_BASE + '/save-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch (e) {
+    // 静默失败 — D1 未配置或网络问题时不影响用户
+    console.log('报告上报状态：未发送至服务器（可能DB未配置）');
+  }
 }
