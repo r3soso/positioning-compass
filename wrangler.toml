@@ -3,8 +3,13 @@ name = "positioning-compass"
 compatibility_date = "2025-06-01"
 pages_build_output_dir = "public"
 
-# Pages Functions 目录（Cloudflare 自动识别）
-# functions/ 目录中的文件会自动转为 API 路由
+# D1 数据库绑定
+[[d1_databases]]
+binding = "DB"
+database_name = "positioning-compass-db"
+database_id = "505ef12f-e214-4d3f-a549-b2302c2ec4d3"
 
-# D1 数据库绑定在 Cloudflare Dashboard 中配置：
-# Settings → Functions → D1 database bindings → DB → positioning-compass-db
+# 环境变量
+[vars]
+ADMIN_PASSWORD = "541122"
+DEEPSEEK_API_KEY = "sk-a21dbc7701be4359924062db322787e7"
