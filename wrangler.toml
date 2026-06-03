@@ -4,12 +4,7 @@ compatibility_date = "2025-06-01"
 pages_build_output_dir = "public"
 
 # Pages Functions 目录（Cloudflare 自动识别）
-# 无需额外配置，functions/ 目录中的文件会自动转为 API 路由
+# functions/ 目录中的文件会自动转为 API 路由
 
-# D1 数据库绑定（生产环境在 Dashboard → Settings → Functions 中绑定）
-# 创建数据库：npx wrangler d1 create positioning-compass-db
-# 执行迁移：npx wrangler d1 execute positioning-compass-db --file=./database/schema.sql
-[[d1_databases]]
-binding = "DB"
-database_name = "positioning-compass-db"
-database_id = "your-database-id"
+# D1 数据库绑定在 Cloudflare Dashboard 中配置：
+# Settings → Functions → D1 database bindings → DB → positioning-compass-db
