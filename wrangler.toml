@@ -9,6 +9,10 @@ binding = "DB"
 database_name = "positioning-compass-db"
 database_id = "505ef12f-e214-4d3f-a549-b2302c2ec4d3"
 
+# Cloudflare Workers AI 绑定（用于语音转写 Whisper）
+[ai]
+binding = "AI"
+
 # 环境变量
 [vars]
 ADMIN_PASSWORD = "541122"
