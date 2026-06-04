@@ -98,20 +98,30 @@ function handleSpeechResult(event) {
   preview.classList.add('show');
 }
 
+let speechRestarts = 0;
+const MAX_SPEECH_RESTARTS = 3;
+
 function handleSpeechError(event) {
   console.log('语音识别错误:', event.error);
   if (event.error === 'not-allowed') {
     showToast('请允许麦克风权限后重试', 'error');
+    forceStopVoice();
+  } else if (event.error === 'network') {
+    // Google 语音服务被墙（国内常见），静默处理，依靠后端 Whisper
+    console.log('语音识别网络不可用（国内正常），录音将继续');
+    updateRecIndicator(currentVoiceField, true, '录音中...（使用AI转写）');
+    return; // 不调 forceStopVoice，等用户手动停止后靠 Whisper 转写
   } else if (event.error === 'no-speech') {
     if (currentVoiceField) updateRecIndicator(currentVoiceField, true, '未检测到语音，请继续...');
   }
-  // aborted → 用户主动停止，不处理
 }
 
 function handleSpeechEnd() {
-  if (isRecording && recognition) {
-    try { recognition.start(); } catch (e) { /* 已在运行 */ }
+  if (isRecording && recognition && speechRestarts < MAX_SPEECH_RESTARTS) {
+    speechRestarts++;
+    try { recognition.start(); } catch (e) { /* ignore */ }
   }
+}
 }
 
 // ── 语音控制 ──
@@ -152,6 +162,9 @@ async function startVoice(field, btn) {
   // 清空预览区
   const preview = document.getElementById('preview_' + field);
   if (preview) { preview.innerHTML = ''; preview.classList.add('show'); }
+
+  // 重置重试计数（国内 Google 被墙时会用到）
+  speechRestarts = 0;
 
   // 启动Web Speech
   clearTimeout(voiceTimeout);
@@ -293,6 +306,31 @@ function updateRecIndicator(field, show, text) {
   } else {
     ind.classList.remove('show');
   }
+}
+
+// ── 强制停止语音（处理 Web Speech 异常时调用）──
+
+function forceStopVoice() {
+  isRecording = false;
+  speechRestarts = MAX_SPEECH_RESTARTS; // 阻止 handleSpeechEnd 重试
+  if (recognition) {
+    try { recognition.stop(); } catch (e) { /* ignore */ }
+  }
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    try {
+      mediaRecorder.stop();
+      if (mediaRecorder.stream) {
+        mediaRecorder.stream.getTracks().forEach(t => t.stop());
+      }
+    } catch (e) { /* ignore */ }
+  }
+  clearTimeout(voiceTimeout);
+  document.querySelectorAll('.mic-btn').forEach(b => {
+    b.classList.remove('recording');
+    const status = b.querySelector('.mic-status');
+    if (status) status.textContent = '语音输入';
+  });
+  document.querySelectorAll('.rec-indicator').forEach(e => e.classList.remove('show'));
 }
 
 // ── 键盘快捷键 ──
