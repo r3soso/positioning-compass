@@ -53,4 +53,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .modal .tag-item{padding:4px 12px;background:rgba(0,0,0,0.05);border-radius:12px;font-size:13px}
 .empty{text-align:center;padding:60px 20px;color:var(--text2)}
 .loading{text-align:center;padding:40px;color:var(--text2)}
-@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.report-item{flex-direction:column}.header{flex-direction:column;align-items:flex-start}.modal{padding:20px 16px}}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.charts-row2{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:20px}
+.chart-box{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow)}
+.chart-box canvas{max-height:280px}
+.chart-wide canvas{max-height:250px}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.charts-row{grid-template-columns:1fr}.report-item{flex-direction:column}.header{flex-direction:column;align-items:flex-start}.modal{padding:20px 16px}}

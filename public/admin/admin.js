@@ -35,6 +35,7 @@ async function loadDash(){
   renderStats(d);
   renderList(d);
   renderPgn(d);
+  loadCharts();
   document.getElementById('reportCount').textContent='共 '+d.total+' 条报告';
 }
 
@@ -186,6 +187,51 @@ async function delRpt(id){
   var r=await fetch('/api/delete-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,password:PWD})});
   var d=await r.json();
   if(d.ok){refreshList()}else{alert(d.message||'删除失败')}
+}
+
+// Charts
+var chartInstances={};
+async function loadCharts(){
+  try{
+    var r=await fetch('/api/stats?password='+encodeURIComponent(PWD));
+    var d=await r.json();
+    if(d.error)return;
+    document.getElementById('chartsRow').style.display='';
+    document.getElementById('chartsRow2').style.display='';
+    renderStrengthChart(d.strength||[]);
+    renderRolesChart(d.roles||[]);
+    renderDailyChart(d.daily||[]);
+  }catch(e){console.log('图表加载失败:',e)}
+}
+function renderStrengthChart(data){
+  var ctx=document.getElementById('chartStrength');
+  if(chartInstances.strength)chartInstances.strength.destroy();
+  var labels=data.map(function(r){return r.positioning_strength||'未知'});
+  var values=data.map(function(r){return r.c});
+  var colors={强:'#27ae60',中等:'#f39c12',弱:'#c0392b'};
+  chartInstances.strength=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels:labels,datasets:[{data:values,backgroundColor:labels.map(function(l){return colors[l]||'#999'})}]},
+    options:{responsive:true,plugins:{title:{display:true,text:'🎯 定位强度分布',font:{size:14}},legend:{position:'bottom'}}}
+  });
+}
+function renderRolesChart(data){
+  var ctx=document.getElementById('chartRoles');
+  if(chartInstances.roles)chartInstances.roles.destroy();
+  chartInstances.roles=new Chart(ctx,{
+    type:'bar',
+    data:{labels:data.map(function(r){return r.role_label}),datasets:[{label:'报告数',data:data.map(function(r){return r.c}),backgroundColor:'#2980b9'}]},
+    options:{responsive:true,plugins:{title:{display:true,text:'👤 各角色分析次数',font:{size:14}},legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  });
+}
+function renderDailyChart(data){
+  var ctx=document.getElementById('chartDaily');
+  if(chartInstances.daily)chartInstances.daily.destroy();
+  chartInstances.daily=new Chart(ctx,{
+    type:'line',
+    data:{labels:data.map(function(r){return r.date}),datasets:[{label:'每日报告数',data:data.map(function(r){return r.c}),borderColor:'#b8860b',backgroundColor:'rgba(184,134,11,0.1)',fill:true,tension:0.3}]},
+    options:{responsive:true,plugins:{title:{display:true,text:'📈 每日分析趋势（近30天）',font:{size:14}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  });
 }
 
 // Utils

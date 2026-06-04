@@ -8,6 +8,7 @@ export async function onRequest() {
 <meta name="robots" content="noindex, nofollow">
 <title>定位罗盘 · 管理后台</title>
 <link rel="stylesheet" href="/admin/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -30,6 +31,13 @@ export async function onRequest() {
       </div>
     </div>
     <div class="stats" id="stats"></div>
+    <div class="charts-row" id="chartsRow" style="display:none">
+      <div class="chart-box"><canvas id="chartStrength"></canvas></div>
+      <div class="chart-box"><canvas id="chartRoles"></canvas></div>
+    </div>
+    <div class="charts-row2" id="chartsRow2" style="display:none">
+      <div class="chart-box chart-wide"><canvas id="chartDaily"></canvas></div>
+    </div>
     <div class="toolbar">
       <span id="toolbarInfo"></span>
       <button class="del-btn" style="color:var(--text2);border-color:var(--border)" onclick="refreshList()">🔄 刷新</button>
