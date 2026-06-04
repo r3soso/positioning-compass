@@ -53,6 +53,8 @@ function checkHDVoiceSupport() {
 // ── Speech 结果处理 ──
 
 function handleSpeechResult(event) {
+  // Google 被墙时 Web Speech 结果乱码，直接忽略，依靠 Whisper 转写
+  if (webSpeechDisabled) return;
   if (!currentVoiceField) return;
   const preview = document.getElementById('preview_' + currentVoiceField);
   if (!preview) return;
@@ -193,17 +195,20 @@ async function startVoice(field, btn) {
 }
 
 async function stopVoice(autoSubmit = false) {
+  // 1. 立即重置所有状态（防止重入）
   isRecording = false;
-  webSpeechDisabled = false;
-  speechRestartCount = 99; // 阻止重试
+  speechRestartCount = 99;
+  clearTimeout(voiceTimeout);
 
-  // 停止 Web Speech
+  // 保存需要的数据
+  const field = currentVoiceField;
+  const chunks = audioChunks.slice();
+  const hasChunks = audioChunks.length > 0;
+
+  // 2. 立即停止录音设备
   if (recognition) {
     try { recognition.stop(); } catch (e) {}
   }
-  clearTimeout(voiceTimeout);
-
-  // 停止 MediaRecorder
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     try {
       mediaRecorder.stop();
@@ -213,7 +218,7 @@ async function stopVoice(autoSubmit = false) {
     } catch (e) {}
   }
 
-  // 重置 UI
+  // 3. 立即重置 UI（用户马上看到反馈）
   document.querySelectorAll('.mic-btn').forEach(b => {
     b.classList.remove('recording');
     const status = b.querySelector('.mic-status');
@@ -221,50 +226,43 @@ async function stopVoice(autoSubmit = false) {
   });
   document.querySelectorAll('.rec-indicator').forEach(e => e.classList.remove('show'));
 
-  // 提交 Web Speech 实时预览文本（如果有的话）
-  if (currentVoiceField) {
-    const preview = document.getElementById('preview_' + currentVoiceField);
-    const textarea = document.getElementById('answer_' + currentVoiceField);
-    if (preview && textarea) {
-      const finalText = preview.querySelector('.final-text');
-      if (finalText && finalText.textContent.trim()) {
-        textarea.value = finalText.textContent.trim();
-        textarea.classList.add('filled');
-        onAnswerInput(currentVoiceField, textarea);
-      }
-      preview.classList.remove('show');
-      preview.innerHTML = '';
-    }
+  // 隐藏预览
+  if (field) {
+    const preview = document.getElementById('preview_' + field);
+    if (preview) { preview.innerHTML = ''; preview.classList.remove('show'); }
   }
 
-  // 上传录音到 Cloudflare AI Whisper 进行高精度转写
-  if (audioChunks.length > 0 && currentVoiceField) {
-    showToast('🔍 AI 正在转写语音...', 'info');
-    await uploadAudioForTranscription(currentVoiceField);
-  }
-
-  const field = currentVoiceField;
+  // 清理全局状态
   currentVoiceField = null;
   mediaRecorder = null;
   audioChunks = [];
+  webSpeechDisabled = false;
 
-  if (autoSubmit && audioChunks.length === 0) {
-    showToast('✅ 语音输入已提交', 'success');
+  // 4. 异步上传录音（不阻塞 UI）
+  if (hasChunks && field) {
+    showToast('🔍 AI 正在转写语音...', 'info');
+    try {
+      await uploadAudioForTranscription(field, chunks);
+    } catch (e) {
+      console.warn('转写失败:', e.message);
+    }
+  } else if (autoSubmit) {
+    showToast('✅ 已停止录音', 'success');
   }
 }
 
 // ── 音频上传与转写 ──
 
-async function uploadAudioForTranscription(field) {
-  if (audioChunks.length === 0) return;
+async function uploadAudioForTranscription(field, chunks) {
+  if (!chunks || chunks.length === 0) return;
 
   try {
     let audioBlob;
     try {
-      audioBlob = await convertToWav(audioChunks, CONFIG.VOICE_TARGET_SAMPLE_RATE);
+      audioBlob = await convertToWav(chunks, CONFIG.VOICE_TARGET_SAMPLE_RATE);
     } catch (e) {
-      const mimeType = audioChunks[0]?.type || 'audio/webm';
-      audioBlob = new Blob(audioChunks, { type: mimeType });
+      const mimeType = chunks[0]?.type || 'audio/webm';
+      audioBlob = new Blob(chunks, { type: mimeType });
     }
 
     const formData = new FormData();
