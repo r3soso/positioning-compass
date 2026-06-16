@@ -36,7 +36,121 @@ async function loadDash(){
   renderList(d);
   renderPgn(d);
   loadCharts();
+  injectSummaryBtn();
   document.getElementById('reportCount').textContent='共 '+d.total+' 条报告';
+}
+
+// ── 一键AI总结 ──
+
+function injectSummaryBtn(){
+  var old=document.getElementById('summaryBtnRow');
+  if(old)old.remove();
+  var oldR=document.getElementById('summaryResult');
+  if(oldR)oldR.remove();
+  var row=document.createElement('div');
+  row.id='summaryBtnRow';
+  row.style.cssText='margin-bottom:20px;text-align:center';
+  row.innerHTML='<button class="sum-btn" onclick="runSummary()">🧠 一键AI总结（按角色分析所有问卷）</button>';
+  var stats=document.getElementById('stats');
+  stats.parentNode.insertBefore(row,stats.nextSibling);
+}
+
+async function runSummary(){
+  var btn=document.querySelector('.sum-btn');
+  if(!btn)return;
+  btn.disabled=true;
+  btn.textContent='⏳ AI正在分析各角色问卷，请耐心等待...';
+  btn.style.opacity='0.7';
+
+  // 显示结果容器
+  var oldR=document.getElementById('summaryResult');
+  if(oldR)oldR.remove();
+  var container=document.createElement('div');
+  container.id='summaryResult';
+  container.innerHTML='<div class="loading" style="padding:20px;text-align:center;color:var(--text2)">⏳ 正在读取所有问卷数据并调用AI分析...</div>';
+  btn.parentNode.insertBefore(container,btn.nextSibling);
+
+  try{
+    var r=await fetch('/api/summary-by-role?password='+encodeURIComponent(PWD));
+    if(r.status===401){container.innerHTML='<p style="color:var(--red);text-align:center;padding:20px">❌ 密码错误</p>';return}
+    var d=await r.json();
+    if(d.error){container.innerHTML='<p style="color:var(--red);text-align:center;padding:20px">❌ '+d.message+'</p>';return}
+    renderSummary(d,container);
+  }catch(e){
+    container.innerHTML='<p style="color:var(--red);text-align:center;padding:20px">❌ 请求失败：'+e.message+'</p>';
+  }finally{
+    btn.disabled=false;
+    btn.textContent='🧠 一键AI总结（按角色分析所有问卷）';
+    btn.style.opacity='1';
+  }
+}
+
+function renderSummary(d,container){
+  var s=d.summaries;
+  var roles=['manager','dealer','guide','service'];
+  var h='';
+  h+='<div class="sum-meta">📅 生成时间：'+fmtDate(d.generatedAt)+'</div>';
+  h+='<div class="sum-cards">';
+  roles.forEach(function(rid){
+    var sum=s[rid];
+    if(!sum)return;
+    h+='<div class="sum-card">';
+    h+='<div class="sum-card-hd">';
+    h+='<span class="sum-role-icon">'+(sum.icon||'')+'</span>';
+    h+='<span class="sum-role-name">'+esc(sum.roleLabel)+'</span>';
+    h+='<span class="sum-role-count">'+sum.reportCount+' 份问卷</span>';
+    h+='</div>';
+
+    if(sum.note && !sum.summary){
+      h+='<div class="sum-card-body"><p style="color:var(--text2)">📭 '+esc(sum.note)+'</p></div>';
+    } else if(sum.summary){
+      var sm=sum.summary;
+      if(sm.parseError){
+        h+='<div class="sum-card-body"><p style="color:var(--red)">⚠️ AI返回解析失败，原始内容：</p><pre style="white-space:pre-wrap;font-size:12px;max-height:200px;overflow:auto">'+esc(sm.raw)+'</pre></div>';
+      } else {
+        h+='<div class="sum-card-body">';
+        // 一句话总结
+        if(sm.oneLineSummary){
+          h+='<div class="sum-oneline">💬 '+esc(sm.oneLineSummary)+'</div>';
+        }
+        // 核心发现
+        if(sm.coreFindings&&sm.coreFindings.length){
+          h+='<div class="sum-section"><div class="sum-section-title">🔍 核心发现</div><ul>';
+          sm.coreFindings.forEach(function(f){h+='<li>'+esc(f)+'</li>'});
+          h+='</ul></div>';
+        }
+        // 共性痛点
+        if(sm.commonPainPoints&&sm.commonPainPoints.length){
+          h+='<div class="sum-section"><div class="sum-section-title">💢 共性痛点</div><ul>';
+          sm.commonPainPoints.forEach(function(f){h+='<li>'+esc(f)+'</li>'});
+          h+='</ul></div>';
+        }
+        // 竞争洞察
+        if(sm.competitiveInsights&&sm.competitiveInsights.length){
+          h+='<div class="sum-section"><div class="sum-section-title">⚔️ 竞争洞察</div><ul>';
+          sm.competitiveInsights.forEach(function(f){h+='<li>'+esc(f)+'</li>'});
+          h+='</ul></div>';
+        }
+        // 一线声音
+        if(sm.customerVoices&&sm.customerVoices.length){
+          h+='<div class="sum-section"><div class="sum-section-title">🗣️ 一线声音</div><ul>';
+          sm.customerVoices.forEach(function(f){h+='<li>'+esc(f)+'</li>'});
+          h+='</ul></div>';
+        }
+        // 建议
+        if(sm.suggestions&&sm.suggestions.length){
+          h+='<div class="sum-section"><div class="sum-section-title">💡 给品牌的建议</div><ul>';
+          sm.suggestions.forEach(function(f){h+='<li>'+esc(f)+'</li>'});
+          h+='</ul></div>';
+        }
+        h+='</div>';
+      }
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div style="text-align:center;margin-top:16px"><button class="btn-refresh-sum" onclick="runSummary()">🔄 重新生成总结</button></div>';
+  container.innerHTML=h;
 }
 
 // Stats
