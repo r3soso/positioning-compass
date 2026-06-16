@@ -2,9 +2,9 @@
 
 const ROLES = [
   { id:'manager', icon:'📊', name:'区域销售经理', desc:'负责区域市场，了解竞争格局和渠道', tag:'管理视角' },
-  { id:'dealer', icon:'🏪', name:'经销商/代理商', desc:'直面终端，清楚什么好卖、顾客要什么', tag:'渠道视角' },
-  { id:'guide', icon:'🛍️', name:'门店导购', desc:'每天接触顾客，最懂他们的抗拒和心动', tag:'一线视角' },
-  { id:'service', icon:'🔧', name:'售后人员', desc:'处理产品问题，知道客户真正在意什么', tag:'用户视角' },
+  { id:'dealer', icon:'🏪', name:'经销商/代理商', desc:'直面终端，清楚什么好卖、顾客要什么', tag:'渠道视角', needProvince: true },
+  { id:'guide', icon:'🛍️', name:'门店导购', desc:'每天接触顾客，最懂他们的抗拒和心动', tag:'一线视角', needProvince: true },
+  { id:'service', icon:'🔧', name:'售后人员', desc:'处理产品问题，知道客户真正在意什么', tag:'用户视角', needProvince: true },
 ];
 
 // 每个角色的专属问题

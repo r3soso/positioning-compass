@@ -25,16 +25,17 @@ export async function onRequest(context) {
     const now = new Date().toISOString();
 
     await env.DB.prepare(`
-      INSERT INTO reports (id, created_at, role, role_label, source,
+      INSERT INTO reports (id, created_at, role, role_label, source, province,
         slot_sentence, miss_element, keywords, competitors, usps, taglines,
         positioning_strength, category_fit, analysis_summary,
         differentiators, pain_points, triggers, next_steps,
         answer_count, answers, followups, cross_answers, raw_report)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       id, now,
       body.role || '', body.roleLabel || '',
       body.source || 'ai',
+      body.province || '',
       body.slotSentence || '', body.missElement || '',
       JSON.stringify(body.keywords || []),
       JSON.stringify(body.competitors || []),

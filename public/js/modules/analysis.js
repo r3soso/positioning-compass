@@ -44,6 +44,7 @@ async function analyzeWithAI() {
   const payload = {
     role: state.role,
     roleLabel: getRoleLabel(state.role),
+    province: state.province || '',
     answers: state.answers,
   };
 
@@ -241,6 +242,7 @@ async function saveReportToServer(analysis, reportId) {
       triggers: analysis.triggers || [],
       nextSteps: analysis.nextSteps || [],
       answerCount: analysis.answerCount || 0,
+      province: state.province || '',
       answers: state.answers || {},
       followups: {},
       crossAnswers: {},

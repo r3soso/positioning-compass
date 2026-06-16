@@ -37,6 +37,7 @@ function selectRole(roleId) {
   clearProgress();
   state.role = roleId;
   state.currentQIdx = 0;
+  state.province = '';
   state.answers = {};
   state.report = null;
   state.reportId = null;

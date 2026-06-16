@@ -3,6 +3,7 @@
 const state = {
   role: null,
   currentQIdx: 0,         // 当前问题索引 0-3
+  province: '',           // 省份（经销商/导购/售后角色必选）
   answers: {},            // {fieldId: answerText}
   report: null,
   reportId: null,         // 保存到历史后的ID
@@ -16,6 +17,7 @@ function saveProgress() {
       version: CONFIG.LS_VERSION,
       role: state.role,
       currentQIdx: state.currentQIdx,
+      province: state.province,
       answers: state.answers,
       lastSavedAt: Date.now(),
     };
@@ -52,6 +54,7 @@ function clearProgress() {
   } catch (e) { /* ignore */ }
   state.role = null;
   state.currentQIdx = 0;
+  state.province = '';
   state.answers = {};
   state.report = null;
   state.reportId = null;
@@ -64,6 +67,7 @@ function hasSavedProgress() {
 function restoreProgress(data) {
   state.role = data.role;
   state.currentQIdx = data.currentQIdx || 0;
+  state.province = data.province || '';
   state.answers = data.answers || {};
 }
 

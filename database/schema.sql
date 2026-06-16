@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS reports (
   role TEXT NOT NULL,
   role_label TEXT NOT NULL,
   source TEXT NOT NULL DEFAULT 'ai',
+  province TEXT NOT NULL DEFAULT '',
   slot_sentence TEXT,
   miss_element TEXT,
   keywords TEXT,
@@ -32,3 +33,6 @@ CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at DESC);
 
 -- 按角色筛选索引
 CREATE INDEX IF NOT EXISTS idx_reports_role ON reports(role);
+
+-- 按省份筛选索引
+CREATE INDEX IF NOT EXISTS idx_reports_province ON reports(province);

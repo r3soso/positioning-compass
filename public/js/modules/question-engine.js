@@ -33,8 +33,10 @@ function renderCurrentQuestion() {
 
   const qData = roleQs[state.currentQIdx];
   const existingAnswer = state.answers[qData.field] || '';
+  const isFirstQ = state.currentQIdx === 0;
+  const needProvince = isFirstQ && currentRoleNeedsProvince();
 
-  container.innerHTML = buildQACard(qData, existingAnswer, state.currentQIdx + 1, roleQs.length);
+  container.innerHTML = buildQACard(qData, existingAnswer, state.currentQIdx + 1, roleQs.length, needProvince);
   btns.innerHTML = buildButtons(qData);
 
   // 恢复已填内容的字符计数
@@ -46,10 +48,12 @@ function renderCurrentQuestion() {
 
 // ── Q&A卡片HTML构建 ──
 
-function buildQACard(qData, existingValue, num, total) {
+function buildQACard(qData, existingValue, num, total, needProvince) {
   const field = qData.field;
+  const provinceHTML = needProvince ? buildProvinceSelector() : '';
   return `
     <div class="qa-card">
+      ${provinceHTML}
       <div class="qa-label q">问题 ${num}/${total}</div>
       <div class="qa-question">${escapeHtml(qData.q).replace(/\n/g, '<br>')}</div>
       <div class="qa-hint">💡 ${escapeHtml(qData.hint)}</div>
@@ -77,7 +81,10 @@ function buildQACard(qData, existingValue, num, total) {
 function buildButtons(qData) {
   const currentVal = state.answers[qData.field] || '';
   const minChars = qData.minChars || 10;
-  const canNext = currentVal.length >= minChars;
+  const isFirstQ = state.currentQIdx === 0;
+  const needProvince = isFirstQ && currentRoleNeedsProvince();
+  const provinceOK = !needProvince || !!state.province;
+  const canNext = currentVal.length >= minChars && provinceOK;
   const roleQs = ROLE_QUESTIONS[state.role];
   const isLast = state.currentQIdx >= roleQs.length - 1;
 
@@ -116,7 +123,8 @@ function updateButtonStates(field, val) {
   const primaryBtns = btnsDiv.querySelectorAll('.btn-primary');
   if (primaryBtns.length === 0) return;
   const minChars = getMinChars(field);
-  const canNext = val.length >= minChars;
+  const provinceOK = !(state.currentQIdx === 0 && currentRoleNeedsProvince()) || !!state.province;
+  const canNext = val.length >= minChars && provinceOK;
   primaryBtns.forEach(b => {
     if (canNext) {
       b.removeAttribute('disabled');
@@ -164,6 +172,12 @@ function nextStep() {
   const roleQs = ROLE_QUESTIONS[state.role];
   if (!roleQs) { showToast('请先选择角色', 'error'); return; }
 
+  // 第一个问题时检查省份是否已选
+  if (state.currentQIdx === 0 && currentRoleNeedsProvince() && !state.province) {
+    showToast('请先选择所在省份', 'error');
+    return;
+  }
+
   const qData = roleQs[state.currentQIdx];
   const ans = state.answers[qData.field] || '';
   if (ans.length < (qData.minChars || 10)) {
@@ -195,6 +209,41 @@ function skipQuestion() {
 function regenerateReport() {
   saveCurrentAnswer();
   generateReport();
+}
+
+// ── 省份选择器 ──
+
+function currentRoleNeedsProvince() {
+  const role = ROLES.find(r => r.id === state.role);
+  return role && role.needProvince;
+}
+
+function buildProvinceSelector() {
+  const selected = state.province || '';
+  let opts = '<option value="">-- 请选择所在省份 --</option>';
+  CHINA_PROVINCES.forEach(p => {
+    opts += `<option value="${p}" ${p === selected ? 'selected' : ''}>${p}</option>`;
+  });
+  return `
+    <div class="province-bar">
+      <label class="province-label">📍 所在省份 <span style="color:var(--red)">*必选</span></label>
+      <select class="province-select" id="provinceSelect" onchange="onProvinceChange(this.value)">
+        ${opts}
+      </select>
+    </div>`;
+}
+
+function onProvinceChange(val) {
+  state.province = val;
+  saveProgress();
+  // 实时更新按钮状态
+  if (state.currentQIdx === 0) {
+    const roleQs = ROLE_QUESTIONS[state.role];
+    if (roleQs) {
+      const qData = roleQs[0];
+      updateButtonStates(qData.field, state.answers[qData.field] || '');
+    }
+  }
 }
 
 // ── 智能过滤按钮 ──
