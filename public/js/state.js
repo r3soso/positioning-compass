@@ -2,12 +2,8 @@
 
 const state = {
   role: null,
-  currentStep: 0,         // 0=主问题, 1=追问, 2=交叉问题, 3=生成报告
-  currentQIdx: 0,
-  crossIdx: 0,
+  currentQIdx: 0,         // 当前问题索引 0-3
   answers: {},            // {fieldId: answerText}
-  followups: {},          // {fieldId_follow: answerText}
-  crossAnswers: {},
   report: null,
   reportId: null,         // 保存到历史后的ID
 };
@@ -19,12 +15,8 @@ function saveProgress() {
     const data = {
       version: CONFIG.LS_VERSION,
       role: state.role,
-      currentStep: state.currentStep,
       currentQIdx: state.currentQIdx,
-      crossIdx: state.crossIdx,
       answers: state.answers,
-      followups: state.followups,
-      crossAnswers: state.crossAnswers,
       lastSavedAt: Date.now(),
     };
     localStorage.setItem(CONFIG.LS_PROGRESS, JSON.stringify(data));
@@ -59,12 +51,8 @@ function clearProgress() {
     localStorage.removeItem(CONFIG.LS_PROGRESS);
   } catch (e) { /* ignore */ }
   state.role = null;
-  state.currentStep = 0;
   state.currentQIdx = 0;
-  state.crossIdx = 0;
   state.answers = {};
-  state.followups = {};
-  state.crossAnswers = {};
   state.report = null;
   state.reportId = null;
 }
@@ -75,12 +63,8 @@ function hasSavedProgress() {
 
 function restoreProgress(data) {
   state.role = data.role;
-  state.currentStep = data.currentStep;
-  state.currentQIdx = data.currentQIdx;
-  state.crossIdx = data.crossIdx;
+  state.currentQIdx = data.currentQIdx || 0;
   state.answers = data.answers || {};
-  state.followups = data.followups || {};
-  state.crossAnswers = data.crossAnswers || {};
 }
 
 // ── 报告历史持久化 ──
@@ -94,8 +78,6 @@ function saveReportToHistory(report) {
       role: state.role,
       roleLabel: getRoleLabel(state.role),
       answers: { ...state.answers },
-      followups: { ...state.followups },
-      crossAnswers: { ...state.crossAnswers },
       analysis: report,
       isFavorite: false,
     };
@@ -168,9 +150,5 @@ function getRoleLabel(roleId) {
 
 /** 获取所有已填写文本（用于AI分析） */
 function getAllAnswerText() {
-  return [
-    ...Object.values(state.answers),
-    ...Object.values(state.followups),
-    ...Object.values(state.crossAnswers),
-  ].filter(Boolean).join('\n');
+  return Object.values(state.answers).filter(Boolean).join('\n');
 }

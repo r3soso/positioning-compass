@@ -62,8 +62,6 @@ function viewHistoryReport(id) {
   // 恢复state以便渲染
   state.role = entry.role;
   state.answers = entry.answers || {};
-  state.followups = entry.followups || {};
-  state.crossAnswers = entry.crossAnswers || {};
 
   const report = document.getElementById('reportSection');
   report.innerHTML = buildReportHTML(entry.analysis);

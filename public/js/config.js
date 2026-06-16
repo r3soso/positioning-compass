@@ -20,7 +20,7 @@ const CONFIG = {
   // localStorage键名
   LS_PROGRESS: 'tarot_compass_progress',
   LS_HISTORY: 'tarot_compass_history',
-  LS_VERSION: 2,
+  LS_VERSION: 3,
 
   // 历史记录上限
   MAX_HISTORY: 100,

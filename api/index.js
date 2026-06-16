@@ -75,7 +75,7 @@ async function callDeepSeek(systemPrompt, userMessage, temperature = 0.7) {
 // ── API: 定位分析 ──
 app.post('/api/analyze', analyzeLimiter, async (req, res) => {
   try {
-    const { role, roleLabel, answers, followups, crossAnswers } = req.body;
+    const { role, roleLabel, answers } = req.body;
     if (!role || !answers) {
       return res.status(400).json({ error: true, message: '缺少必要参数' });
     }
@@ -86,19 +86,10 @@ app.post('/api/analyze', analyzeLimiter, async (req, res) => {
         qaText += `问题(${field})：${text}\n`;
       });
     }
-    if (followups) {
-      Object.entries(followups).forEach(([field, text]) => {
-        qaText += `追问(${field})：${text}\n`;
-      });
-    }
-    if (crossAnswers) {
-      Object.entries(crossAnswers).forEach(([field, text]) => {
-        qaText += `交叉问题(${field})：${text}\n`;
-      });
-    }
 
-    const systemPrompt = `你是一位特劳特定位理论的资深品牌顾问，精通《定位》《商战》《与众不同》等经典著作。
-你的任务是基于用户（一位品牌团队成员）的问答记录，进行专业的品牌定位分析。
+    const systemPrompt = `你是一位资深品牌战略顾问，帮助品牌团队分析来自一线团队的调研问卷。
+
+你的任务是基于用户（一位品牌团队成员）的问答记录，提炼品牌的核心优势、竞争洞察和改进建议。
 
 请严格按以下JSON格式返回分析结果（不要添加任何额外文字，不要用markdown代码块包裹）：
 {
@@ -118,9 +109,9 @@ app.post('/api/analyze', analyzeLimiter, async (req, res) => {
 }
 
 分析原则：
-1. 严格遵循特劳特定位理论：心智阶梯、差异化、聚焦法则、语言钉
-2. 基于用户的实际回答，不要编造信息
-3. 宣传语要短小精悍一针见血
+1. 基于用户实际回答，如实提炼，不编造信息
+2. 关注一线人员反馈的具体细节和原话
+3. 洞察跨问题的共性模式和核心矛盾
 4. 如果信息不足，填写"需要更多信息来准确判断"
 5. 所有输出使用中文`;
 

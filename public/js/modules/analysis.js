@@ -45,8 +45,6 @@ async function analyzeWithAI() {
     role: state.role,
     roleLabel: getRoleLabel(state.role),
     answers: state.answers,
-    followups: state.followups,
-    crossAnswers: state.crossAnswers,
   };
 
   const resp = await fetch(CONFIG.API_BASE + '/analyze', {
@@ -70,9 +68,7 @@ async function analyzeWithAI() {
     source: 'ai',
     role: state.role,
     roleLabel: getRoleLabel(state.role),
-    answerCount: Object.values(state.answers).filter(Boolean).length +
-                 Object.values(state.followups).filter(Boolean).length +
-                 Object.values(state.crossAnswers).filter(Boolean).length,
+    answerCount: Object.values(state.answers).filter(Boolean).length,
   };
 }
 
@@ -87,8 +83,8 @@ function analyzePositioningLocal(allText) {
   const customerPainPoints = extractPainPoints(allText);
   const purchaseTriggers = extractTriggers(allText);
 
-  const slotSentence = state.crossAnswers['slot'] || buildSlotFromKeywords(keywords);
-  const missElement = state.crossAnswers['miss'] || buildMissFromData(allText);
+  const slotSentence = state.answers['slot'] || buildSlotFromKeywords(keywords);
+  const missElement = state.answers['miss'] || buildMissFromData(allText);
   const usps = synthesizeUSPs(allText, differentiators, purchaseTriggers);
   const taglines = generateTaglines(keywords, differentiators, customerPainPoints);
 
@@ -115,9 +111,7 @@ function analyzePositioningLocal(allText) {
     analysisSummary: '（离线模式生成）基于你的问答记录，我们提取了品牌关键词、差异化优势和客户痛点。建议配合AI分析获得更深入的定位洞察。',
     positioningStrength: '中等',
     categoryFit: '请完成"定位句式"问题以获得更精准的品类定位',
-    answerCount: Object.values(state.answers).filter(Boolean).length +
-                 Object.values(state.followups).filter(Boolean).length +
-                 Object.values(state.crossAnswers).filter(Boolean).length,
+    answerCount: Object.values(state.answers).filter(Boolean).length,
   };
 }
 
@@ -248,8 +242,8 @@ async function saveReportToServer(analysis, reportId) {
       nextSteps: analysis.nextSteps || [],
       answerCount: analysis.answerCount || 0,
       answers: state.answers || {},
-      followups: state.followups || {},
-      crossAnswers: state.crossAnswers || {},
+      followups: {},
+      crossAnswers: {},
     };
 
     await fetch(CONFIG.API_BASE + '/save-report', {

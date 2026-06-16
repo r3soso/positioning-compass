@@ -36,12 +36,8 @@ function renderRoleSelector() {
 function selectRole(roleId) {
   clearProgress();
   state.role = roleId;
-  state.currentStep = 0;
   state.currentQIdx = 0;
-  state.crossIdx = 0;
   state.answers = {};
-  state.followups = {};
-  state.crossAnswers = {};
   state.report = null;
   state.reportId = null;
 
