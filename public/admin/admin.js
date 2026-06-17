@@ -38,6 +38,7 @@ async function loadDash(){
   loadCharts();
   injectSummaryBtn();
   injectProvinceBtn();
+  loadProvinceCounts();
   document.getElementById('reportCount').textContent='共 '+d.total+' 条报告';
 }
 
@@ -455,6 +456,54 @@ function renderProvinceInsights(d,container){
 
   h+='<div style="text-align:center;margin-top:16px"><button class="btn-refresh-sum" onclick="runProvinceInsights()">🔄 刷新分析</button></div>';
   container.innerHTML=h;
+}
+
+// ── 省份份数统计（轻量，页面加载时自动展示）──
+
+async function loadProvinceCounts(){
+  try{
+    var r=await fetch('/api/province-counts?password='+encodeURIComponent(PWD));
+    var d=await r.json();
+    if(d.error||!d.rows||!d.rows.length)return;
+    renderProvinceCounts(d);
+  }catch(e){console.log('省份统计加载失败:',e)}
+}
+
+function renderProvinceCounts(d){
+  var old=document.getElementById('provinceCountsBox');
+  if(old)old.remove();
+
+  var box=document.createElement('div');
+  box.id='provinceCountsBox';
+  box.style.cssText='margin-bottom:20px';
+
+  var h='';
+  h+='<h3 style="font-size:14px;margin-bottom:8px">🗺️ 各省份问卷提交统计</h3>';
+  h+='<div class="pv-table-wrap"><table class="pv-table pv-compact">';
+  h+='<thead><tr><th>省份</th><th>🛍️ 导购</th><th>🏪 经销商</th><th>🔧 售后</th><th>合计</th></tr></thead><tbody>';
+
+  d.rows.forEach(function(row){
+    h+='<tr><td class="pv-province">'+esc(row.province)+'</td>';
+    h+='<td class="pv-count">'+row.guide+'</td>';
+    h+='<td class="pv-count">'+row.dealer+'</td>';
+    h+='<td class="pv-count">'+row.service+'</td>';
+    h+='<td class="pv-total">'+(row.guide+row.dealer+row.service)+'</td></tr>';
+  });
+
+  // 汇总行
+  h+='<tr style="font-weight:700;border-top:2px solid var(--border)"><td class="pv-province">合计</td>';
+  h+='<td class="pv-count">'+d.totals.guide+'</td>';
+  h+='<td class="pv-count">'+d.totals.dealer+'</td>';
+  h+='<td class="pv-count">'+d.totals.service+'</td>';
+  h+='<td class="pv-total">'+(d.totals.guide+d.totals.dealer+d.totals.service)+'</td></tr>';
+
+  h+='</tbody></table></div>';
+  box.innerHTML=h;
+
+  // 插入到报告列表上方
+  var list=document.getElementById('reportList');
+  if(list)list.parentNode.insertBefore(box,list);
+  else{var toolbar=document.querySelector('.toolbar');if(toolbar)toolbar.parentNode.insertBefore(box,toolbar)}
 }
 
 // Utils
