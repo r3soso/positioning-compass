@@ -78,4 +78,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sum-section li{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:3px}
 .btn-refresh-sum{background:none;border:1px solid var(--border);color:var(--blue);padding:10px 24px;border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--font);transition:all .2s}
 .btn-refresh-sum:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
-@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.charts-row{grid-template-columns:1fr}.report-item{flex-direction:column}.header{flex-direction:column;align-items:flex-start}.modal{padding:20px 16px}.sum-cards{grid-template-columns:1fr}}
+/* 省份维度分析 */
+.pv-table-wrap{overflow-x:auto;margin-bottom:20px}
+.pv-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.pv-table th,.pv-table td{padding:8px 12px;text-align:center;border-bottom:1px solid var(--border)}
+.pv-table th{background:var(--bg);font-size:11px;font-weight:700;color:var(--text2);white-space:nowrap}
+.pv-table .pv-province{text-align:left;font-weight:700;color:var(--text);white-space:nowrap}
+.pv-table .pv-count{color:var(--blue);font-weight:700}
+.pv-table .pv-total{color:var(--gold);font-weight:800}
+.pv-table tbody tr:hover{background:rgba(0,0,0,0.02)}
+.theme-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.theme-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.theme-card-hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--border);font-size:14px;font-weight:700}
+.theme-card-body{padding:12px 16px}
+.theme-summary{font-size:14px;font-weight:700;color:var(--gold);padding:8px 12px;background:rgba(184,134,11,0.08);border-radius:8px;margin-bottom:12px}
+.theme-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.theme-tbl th{text-align:left;font-size:11px;color:var(--text2);padding:6px 8px;border-bottom:2px solid var(--border)}
+.theme-tbl td{padding:8px;border-bottom:1px solid var(--border);vertical-align:top}
+.theme-freq{color:var(--red);font-weight:700;text-align:center;white-space:nowrap}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.charts-row{grid-template-columns:1fr}.report-item{flex-direction:column}.header{flex-direction:column;align-items:flex-start}.modal{padding:20px 16px}.sum-cards{grid-template-columns:1fr}.theme-cards{grid-template-columns:1fr}}

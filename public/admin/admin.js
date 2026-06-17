@@ -37,6 +37,7 @@ async function loadDash(){
   renderPgn(d);
   loadCharts();
   injectSummaryBtn();
+  injectProvinceBtn();
   document.getElementById('reportCount').textContent='共 '+d.total+' 条报告';
 }
 
@@ -346,6 +347,114 @@ function renderDailyChart(data){
     data:{labels:data.map(function(r){return r.date}),datasets:[{label:'每日报告数',data:data.map(function(r){return r.c}),borderColor:'#b8860b',backgroundColor:'rgba(184,134,11,0.1)',fill:true,tension:0.3}]},
     options:{responsive:true,plugins:{title:{display:true,text:'📈 每日分析趋势（近30天）',font:{size:14}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
   });
+}
+
+// ── 省份维度分析 ──
+
+function injectProvinceBtn(){
+  var old=document.getElementById('provinceBtnRow');
+  if(old)old.remove();
+  var oldR=document.getElementById('provinceResult');
+  if(oldR)oldR.remove();
+  var row=document.createElement('div');
+  row.id='provinceBtnRow';
+  row.style.cssText='margin-bottom:20px;text-align:center';
+  row.innerHTML='<button class="sum-btn" style="background:linear-gradient(135deg,#8e44ad,#5b2c6f)" onclick="runProvinceInsights()">📊 省份维度分析（各省×角色样本统计 + AI共性需求）</button>';
+  var prev=document.getElementById('summaryResult') || document.getElementById('summaryBtnRow');
+  if(prev)prev.parentNode.insertBefore(row,prev.nextSibling);
+  else{var stats=document.getElementById('stats');stats.parentNode.insertBefore(row,stats.nextSibling)}
+}
+
+async function runProvinceInsights(){
+  var btn=document.querySelector('#provinceBtnRow .sum-btn');
+  if(!btn)return;
+  btn.disabled=true;
+  btn.textContent='⏳ AI正在分析各省份角色数据...';
+  btn.style.opacity='0.7';
+
+  var oldR=document.getElementById('provinceResult');
+  if(oldR)oldR.remove();
+  var container=document.createElement('div');
+  container.id='provinceResult';
+  container.innerHTML='<div class="loading" style="padding:20px;text-align:center;color:var(--text2)">⏳ 正在读取省份数据并调用AI分析共性需求...</div>';
+  btn.parentNode.insertBefore(container,btn.nextSibling);
+
+  try{
+    var r=await fetch('/api/province-insights?password='+encodeURIComponent(PWD));
+    if(r.status===401){container.innerHTML='<p style="color:var(--red);text-align:center;padding:20px">❌ 密码错误</p>';return}
+    var d=await r.json();
+    if(d.error){container.innerHTML='<p style="color:var(--red);text-align:center;padding:20px">❌ '+d.message+'</p>';return}
+    renderProvinceInsights(d,container);
+  }catch(e){
+    container.innerHTML='<p style="color:var(--red);text-align:center;padding:20px">❌ 请求失败：'+e.message+'</p>';
+  }finally{
+    btn.disabled=false;
+    btn.textContent='📊 省份维度分析（各省×角色样本统计 + AI共性需求）';
+    btn.style.opacity='1';
+  }
+}
+
+function renderProvinceInsights(d,container){
+  var h='';
+  h+='<div class="sum-meta">📅 生成时间：'+fmtDate(d.generatedAt)+'</div>';
+
+  // ── 省份×角色交叉表格 ──
+  var roles=['manager','dealer','guide','service'];
+  var roleIcons={manager:'📊',dealer:'🏪',guide:'🛍️',service:'🔧'};
+  var roleLabels={manager:'销售经理',dealer:'经销商',guide:'导购',service:'售后'};
+
+  h+='<h3 style="margin-bottom:10px;font-size:15px">🗺️ 省份 × 角色样本分布</h3>';
+  h+='<div class="pv-table-wrap"><table class="pv-table">';
+  h+='<thead><tr><th>省份</th>';
+  roles.forEach(function(rid){h+='<th>'+roleIcons[rid]+' '+roleLabels[rid]+'</th>'});
+  h+='<th>合计</th></tr></thead><tbody>';
+
+  if(!d.grid||!d.grid.length){
+    h+='<tr><td colspan="6" style="text-align:center;color:var(--text2)">暂无省份数据（需在有省份标记的问卷提交后显示）</td></tr>';
+  } else {
+    d.grid.forEach(function(row){
+      h+='<tr><td class="pv-province">'+esc(row.province)+'</td>';
+      roles.forEach(function(rid){
+        var v=row.roles[rid];
+        h+='<td class="pv-count">'+(v?v.count:0)+'</td>';
+      });
+      h+='<td class="pv-total">'+row.total+'</td></tr>';
+    });
+  }
+  h+='</tbody></table></div>';
+
+  // ── AI 共性需求分析 ──
+  if(d.themeResults){
+    h+='<h3 style="margin:24px 0 10px;font-size:15px">🧠 AI共性需求分析（按角色，附频次与省份）</h3>';
+    h+='<div class="theme-cards">';
+    roles.forEach(function(rid){
+      var tr=d.themeResults[rid];
+      if(!tr)return;
+      h+='<div class="theme-card">';
+      h+='<div class="theme-card-hd"><span>'+tr.icon+' '+esc(tr.roleLabel)+'</span><span style="font-size:11px;color:var(--text2)">样本 '+tr.totalCount+' 份</span></div>';
+      h+='<div class="theme-card-body">';
+      if(tr.summary&&!tr.parseError){
+        h+='<div class="theme-summary">💬 '+esc(tr.summary)+'</div>';
+      }
+      if(tr.themes&&tr.themes.length){
+        h+='<table class="theme-tbl"><thead><tr><th>共性主题</th><th>频次</th><th>出现省份</th></tr></thead><tbody>';
+        tr.themes.forEach(function(t){
+          var pvs=(t.provinces||[]).join('、');
+          h+='<tr><td><strong>'+esc(t.theme)+'</strong><br><span style="font-size:11px;color:var(--text2)">'+esc(t.detail||'')+'</span></td>';
+          h+='<td class="theme-freq">'+t.frequency+' 次</td>';
+          h+='<td style="font-size:12px;color:var(--text2)">'+esc(pvs)+'</td></tr>';
+        });
+        h+='</tbody></table>';
+      } else if(tr.note){
+        h+='<p style="color:var(--text2);font-size:13px">📭 '+esc(tr.note)+'</p>';
+      }
+      h+='</div></div>';
+    });
+    h+='</div>';
+  }
+
+  h+='<div style="text-align:center;margin-top:16px"><button class="btn-refresh-sum" onclick="runProvinceInsights()">🔄 刷新分析</button></div>';
+  container.innerHTML=h;
 }
 
 // Utils
